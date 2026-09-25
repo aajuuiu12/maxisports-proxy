@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-const REFERER = "https://iframe.rumsport8.live/";
+const REFERER = "https://livecdn-tc-iptv.rumsport10.live/";
 
 app.get('/proxy', async (req, res) => {
     const targetUrl = req.query.u;
@@ -19,7 +19,11 @@ app.get('/proxy', async (req, res) => {
         const response = await axios({
             method: 'GET',
             url: targetUrl,
-            headers: { 'User-Agent': USER_AGENT, 'Referer': REFERER },
+            headers: { 
+                'User-Agent': USER_AGENT, 
+                'Referer': REFERER,
+                'Origin': 'https://livecdn-tc-iptv.rumsport10.live'
+            },
             responseType: isManifest ? 'text' : 'stream',
             timeout: 20000,
             validateStatus: (status) => status >= 200 && status < 400
@@ -28,6 +32,7 @@ app.get('/proxy', async (req, res) => {
         if (response.headers['content-type']) {
             res.setHeader('Content-Type', response.headers['content-type']);
         }
+        res.setHeader('Access-Control-Allow-Origin', '*');
 
         if (isManifest) {
             const baseUrl = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
@@ -57,7 +62,8 @@ app.get('/proxy', async (req, res) => {
             response.data.pipe(res);
         }
     } catch (error) {
-        if (!res.headersSent) res.status(500).send("Stream Proxy Failed");
+        console.error("Proxy Error:", error.message);
+        if (!res.headersSent) res.status(500).send("Stream Proxy Failed: " + error.message);
     }
 });
 
@@ -71,4 +77,6 @@ function resolveUrl(baseUrl, relativeUrl) {
 }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
+
+// FIXED: Bound to '0.0.0.0' so Fly.io / Render network proxies can reach it
+app.listen(PORT, '0.0.0.0', () => console.log(`Proxy running on port ${PORT}`));
