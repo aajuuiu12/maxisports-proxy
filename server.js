@@ -76,7 +76,7 @@ function resolveUrl(baseUrl, relativeUrl) {
     return baseUrl + relativeUrl;
 }
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // FIXED: Bound to '0.0.0.0' so Fly.io / Render network proxies can reach it
 app.listen(PORT, '0.0.0.0', () => console.log(`Proxy running on port ${PORT}`));
